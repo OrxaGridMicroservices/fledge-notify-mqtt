@@ -93,7 +93,7 @@ MQTTClient	client;
 	pubmsg.payload = (void *)payload.c_str();
 	pubmsg.payloadlen = payload.length();
 	pubmsg.qos = 1;
-	pubmsg.retained = 0;
+	pubmsg.retained = 1;
 
 	// Publish the message
 	if ((rc = MQTTClient_publishMessage(client, m_topic.c_str(), &pubmsg, &token)) != MQTTCLIENT_SUCCESS)
