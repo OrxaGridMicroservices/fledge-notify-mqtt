@@ -10,14 +10,12 @@
 #include "mqtt.h"
 #include <logger.h>
 #include <simple_https.h>
-#include <rapidjson/document.h>
 #include "MQTTClient.h"
 
 #define TIMEOUT     10000L
 #define CLIENTID    "FledgeNotification"
 
 using namespace std;
-using namespace rapidjson;
 
 
 /**
@@ -31,10 +29,6 @@ MQTT::MQTT(ConfigCategory *category)
 		m_broker = category->getValue("broker");
 	if (category->itemExists("topic"))
 		m_topic = category->getValue("topic");
-	if (category->itemExists("trigger_payload"))
-		m_trigger = category->getValue("trigger_payload");
-	if (category->itemExists("clear_payload"))
-		m_clear = category->getValue("clear_payload");
 }
 
 /**
@@ -53,20 +47,10 @@ MQTT::~MQTT()
  */
 bool MQTT::notify(const string& notificationName, const string& triggerReason, const string& message)
 {
-string 		payload = m_trigger;
+const string&	payload = triggerReason;
 MQTTClient	client;
 
 	lock_guard<mutex> guard(m_mutex);
-
-	// Parse the JSON that represents the reason data
-	Document doc;
-	doc.Parse(triggerReason.c_str());
-	if (!doc.HasParseError() && doc.HasMember("reason"))
-	{
-		if (!strcmp(doc["reason"].GetString(), "cleared"))
-			payload = m_clear;
-	}
-
 
 	// Connect to the MQTT broker
 	MQTTClient_connectOptions conn_opts = MQTTClient_connectOptions_initializer;
@@ -121,6 +105,4 @@ void MQTT::reconfigure(const string& newConfig)
 	lock_guard<mutex> guard(m_mutex);
 	m_broker = category.getValue("broker");
 	m_topic = category.getValue("topic");
-	m_trigger = category.getValue("trigger_payload");
-	m_clear = category.getValue("clear_payload");
 }

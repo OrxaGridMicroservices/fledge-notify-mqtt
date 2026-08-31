@@ -43,20 +43,6 @@ static const char *default_config = QUOTE({
 			"default" : "Fledge",
 			"order" : "2",
 		       	"displayName" : "MQTT Topic"
-			},
-		"trigger_payload" : {
-			"description" : "Payload to send when the notification triggers",
-			"type" : "string",
-			"default" : "Triggered",
-			"order" : "3",
-			"displayName" : "Trigger Payload"
-			},
-		"clear_payload" : {
-			"description" : "Payload to send when the notification clears",
-			"type" : "string",
-			"default" : "Cleared",
-			"order" : "4",
-			"displayName" : "Clear Payload"
 			}
 		});
 
