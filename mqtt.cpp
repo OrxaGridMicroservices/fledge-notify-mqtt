@@ -34,6 +34,8 @@ MQTT::MQTT(ConfigCategory *category)
 		m_broker = category->getValue("broker");
 	if (category->itemExists("topic"))
 		m_topic = category->getValue("topic");
+	if (category->itemExists("payload_content"))
+		m_payloadContent = category->getValue("payload_content");
 	if (category->itemExists("trigger_payload"))
 		m_trigger = category->getValue("trigger_payload");
 	if (category->itemExists("clear_payload"))
@@ -61,30 +63,33 @@ MQTTClient	client;
 
 	lock_guard<mutex> guard(m_mutex);
 
-	// If a custom trigger/clear message has been configured, add it to the
-	// trigger reason JSON as a "message" field rather than replacing it,
-	// so subscribers still get the full reason/asset/data payload.
 	Document doc;
 	doc.Parse(triggerReason.c_str());
-	if (!doc.HasParseError() && doc.IsObject())
-	{
-		bool cleared = doc.HasMember("reason") && doc["reason"].IsString()
-				&& !strcmp(doc["reason"].GetString(), "cleared");
-		const string& custom = cleared ? m_clear : m_trigger;
-		if (!custom.empty())
-		{
-			Value key("message", doc.GetAllocator());
-			Value val(custom.c_str(), doc.GetAllocator());
-			if (doc.HasMember("message"))
-				doc["message"] = val;
-			else
-				doc.AddMember(key, val, doc.GetAllocator());
+	bool cleared = !doc.HasParseError() && doc.IsObject()
+			&& doc.HasMember("reason") && doc["reason"].IsString()
+			&& !strcmp(doc["reason"].GetString(), "cleared");
+	const string& custom = cleared ? m_clear : m_trigger;
 
-			StringBuffer buffer;
-			Writer<StringBuffer> writer(buffer);
-			doc.Accept(writer);
-			payload = buffer.GetString();
-		}
+	if (m_payloadContent == "Custom Message")
+	{
+		// Publish just the configured trigger/clear text, ignoring the reason JSON
+		payload = custom;
+	}
+	else if (!doc.HasParseError() && doc.IsObject() && !custom.empty())
+	{
+		// Merge the configured message into the trigger reason JSON so
+		// subscribers still get the full reason/asset/data payload.
+		Value key("message", doc.GetAllocator());
+		Value val(custom.c_str(), doc.GetAllocator());
+		if (doc.HasMember("message"))
+			doc["message"] = val;
+		else
+			doc.AddMember(key, val, doc.GetAllocator());
+
+		StringBuffer buffer;
+		Writer<StringBuffer> writer(buffer);
+		doc.Accept(writer);
+		payload = buffer.GetString();
 	}
 
 	// Connect to the MQTT broker
@@ -140,6 +145,7 @@ void MQTT::reconfigure(const string& newConfig)
 	lock_guard<mutex> guard(m_mutex);
 	m_broker = category.getValue("broker");
 	m_topic = category.getValue("topic");
+	m_payloadContent = category.getValue("payload_content");
 	m_trigger = category.getValue("trigger_payload");
 	m_clear = category.getValue("clear_payload");
 }
