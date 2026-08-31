@@ -53,14 +53,14 @@ static const char *default_config = QUOTE({
 			"displayName" : "Payload Content"
 			},
 		"trigger_payload" : {
-			"description" : "Message to send when the notification triggers. In \"Trigger Reason\" mode this is merged into the JSON as a \"message\" field (leave blank to publish the reason unmodified); in \"Custom Message\" mode this is published as-is.",
+			"description" : "Message to send when the notification triggers. In Trigger Reason mode this is merged into the JSON as a message field (leave blank to publish the reason unmodified); in Custom Message mode this is published as-is.",
 			"type" : "string",
 			"default" : "Triggered",
 			"order" : "4",
 			"displayName" : "Trigger Message"
 			},
 		"clear_payload" : {
-			"description" : "Message to send when the notification clears. In \"Trigger Reason\" mode this is merged into the JSON as a \"message\" field (leave blank to publish the reason unmodified); in \"Custom Message\" mode this is published as-is.",
+			"description" : "Message to send when the notification clears. In Trigger Reason mode this is merged into the JSON as a message field (leave blank to publish the reason unmodified); in Custom Message mode this is published as-is.",
 			"type" : "string",
 			"default" : "Cleared",
 			"order" : "5",
