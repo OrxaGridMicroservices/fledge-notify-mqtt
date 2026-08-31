@@ -43,6 +43,20 @@ static const char *default_config = QUOTE({
 			"default" : "Fledge",
 			"order" : "2",
 		       	"displayName" : "MQTT Topic"
+			},
+		"trigger_payload" : {
+			"description" : "Optional custom message added to the \"message\" field of the published JSON when the notification triggers. Leave blank to publish the trigger reason unmodified.",
+			"type" : "string",
+			"default" : "",
+			"order" : "3",
+			"displayName" : "Trigger Message"
+			},
+		"clear_payload" : {
+			"description" : "Optional custom message added to the \"message\" field of the published JSON when the notification clears. Leave blank to publish the trigger reason unmodified.",
+			"type" : "string",
+			"default" : "",
+			"order" : "4",
+			"displayName" : "Clear Message"
 			}
 		});
 

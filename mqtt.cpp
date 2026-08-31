@@ -8,14 +8,19 @@
  * Author: Mark Riddoch           
  */
 #include "mqtt.h"
+#include <cstring>
 #include <logger.h>
 #include <simple_https.h>
+#include <rapidjson/document.h>
+#include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
 #include "MQTTClient.h"
 
 #define TIMEOUT     10000L
 #define CLIENTID    "FledgeNotification"
 
 using namespace std;
+using namespace rapidjson;
 
 
 /**
@@ -29,6 +34,10 @@ MQTT::MQTT(ConfigCategory *category)
 		m_broker = category->getValue("broker");
 	if (category->itemExists("topic"))
 		m_topic = category->getValue("topic");
+	if (category->itemExists("trigger_payload"))
+		m_trigger = category->getValue("trigger_payload");
+	if (category->itemExists("clear_payload"))
+		m_clear = category->getValue("clear_payload");
 }
 
 /**
@@ -47,10 +56,36 @@ MQTT::~MQTT()
  */
 bool MQTT::notify(const string& notificationName, const string& triggerReason, const string& message)
 {
-const string&	payload = triggerReason;
+string		payload = triggerReason;
 MQTTClient	client;
 
 	lock_guard<mutex> guard(m_mutex);
+
+	// If a custom trigger/clear message has been configured, add it to the
+	// trigger reason JSON as a "message" field rather than replacing it,
+	// so subscribers still get the full reason/asset/data payload.
+	Document doc;
+	doc.Parse(triggerReason.c_str());
+	if (!doc.HasParseError() && doc.IsObject())
+	{
+		bool cleared = doc.HasMember("reason") && doc["reason"].IsString()
+				&& !strcmp(doc["reason"].GetString(), "cleared");
+		const string& custom = cleared ? m_clear : m_trigger;
+		if (!custom.empty())
+		{
+			Value key("message", doc.GetAllocator());
+			Value val(custom.c_str(), doc.GetAllocator());
+			if (doc.HasMember("message"))
+				doc["message"] = val;
+			else
+				doc.AddMember(key, val, doc.GetAllocator());
+
+			StringBuffer buffer;
+			Writer<StringBuffer> writer(buffer);
+			doc.Accept(writer);
+			payload = buffer.GetString();
+		}
+	}
 
 	// Connect to the MQTT broker
 	MQTTClient_connectOptions conn_opts = MQTTClient_connectOptions_initializer;
@@ -105,4 +140,6 @@ void MQTT::reconfigure(const string& newConfig)
 	lock_guard<mutex> guard(m_mutex);
 	m_broker = category.getValue("broker");
 	m_topic = category.getValue("topic");
+	m_trigger = category.getValue("trigger_payload");
+	m_clear = category.getValue("clear_payload");
 }
