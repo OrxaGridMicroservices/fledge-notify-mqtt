@@ -44,19 +44,27 @@ static const char *default_config = QUOTE({
 			"order" : "2",
 		       	"displayName" : "MQTT Topic"
 			},
+		"payload_content" : {
+			"description" : "What to publish to the MQTT topic: the full trigger reason JSON (with the evaluated reading data), or just the plain Trigger/Clear Message text.",
+			"type" : "enumeration",
+			"options" : ["Trigger Reason", "Custom Message"],
+			"default" : "Trigger Reason",
+			"order" : "3",
+			"displayName" : "Payload Content"
+			},
 		"trigger_payload" : {
-			"description" : "Payload to send when the notification triggers",
+			"description" : "Message to send when the notification triggers. In Trigger Reason mode this is merged into the JSON as a message field (leave blank to publish the reason unmodified); in Custom Message mode this is published as-is.",
 			"type" : "string",
 			"default" : "Triggered",
-			"order" : "3",
-			"displayName" : "Trigger Payload"
+			"order" : "4",
+			"displayName" : "Trigger Message"
 			},
 		"clear_payload" : {
-			"description" : "Payload to send when the notification clears",
+			"description" : "Message to send when the notification clears. In Trigger Reason mode this is merged into the JSON as a message field (leave blank to publish the reason unmodified); in Custom Message mode this is published as-is.",
 			"type" : "string",
 			"default" : "Cleared",
-			"order" : "4",
-			"displayName" : "Clear Payload"
+			"order" : "5",
+			"displayName" : "Clear Message"
 			}
 		});
 

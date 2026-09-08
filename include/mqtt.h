@@ -19,6 +19,7 @@ class MQTT {
 	private:
 		std::string	m_broker;
 		std::string	m_topic;
+		std::string	m_payloadContent;
 		std::string	m_trigger;
 		std::string	m_clear;
 		std::mutex	m_mutex;
